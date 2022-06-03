@@ -61,6 +61,7 @@ let floatAnimation;
 let useAnimations;
 let aimAnimations;
 let sitAnimations;
+let reloadRifleAnimation;
 let danceAnimations;
 let emoteAnimations;
 // let throwAnimations;
@@ -300,6 +301,7 @@ export const loadPromise = (async () => {
   // swordTopDownSlash = animations.find(a => a.isSwordTopDownSlash)
 
   jumpAnimation = animations.find(a => a.isJump);
+  reloadRifleAnimation = animations.find(a => a.isRifleReload);
   // sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);
   // rifleAnimation = animations.find(a => a.isRifle);
@@ -312,6 +314,8 @@ export const loadPromise = (async () => {
     swordTopDownSlash: animations.index['sword_topdown_slash.fbx'],
     swordTopDownSlashStep: animations.index['sword_topdown_slash_step.fbx'],
     swordUndraw: animations.index['sword_undraw.fbx'],
+    rifleAim: animations.index['rifle_aim_3.fbx'],
+    rifleReload: animations.index['rifle_reload.fbx'],
   };
   useAnimations = mergeAnimations({
     combo: animations.find(a => a.isCombo),
@@ -1026,6 +1030,52 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const src3 = idleAnimation.interpolants[k];
           const v3 = src3.evaluate(t3);
 
+          dst
+            .sub(localVector2.fromArray(v3))
+            .add(localVector2.fromArray(v2));
+        }
+      };
+    } else if (avatar.reloadRifleAnimation) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          // isTop,
+          isPosition,
+        } = spec;
+
+        const reloadAnimation = (avatar.reloadRifleAnimation && aimAnimations[avatar.reloadRifleAnimation]);
+        _handleDefault(spec);
+        // const reloadTimeS = avatar.reloadTime / 1000;
+        const t2 = now / 1000 % reloadAnimation.duration;
+        // This is not the best solution to remove the action when the animation ends. Will think of better one
+        const localPlayer = metaversefile.useLocalPlayer();
+        const timeFix = 0.1;
+        if (t2 >= reloadAnimation.duration - timeFix) {
+          localPlayer.removeAction('reloadGun');
+        }
+        if (!isPosition) {
+          if (reloadAnimation) {
+            const src2 = reloadAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            const idleAnimation = _getIdleAnimation('walk');
+            const t3 = 0;
+            const src3 = idleAnimation.interpolants[k];
+            const v3 = src3.evaluate(t3);
+
+            dst
+              .premultiply(localQuaternion2.fromArray(v3).invert())
+              .premultiply(localQuaternion2.fromArray(v2));
+          }
+        } else {
+          const src2 = reloadAnimation.interpolants[k];
+          const v2 = src2.evaluate(t2);
+
+          const idleAnimation = _getIdleAnimation('walk');
+          const t3 = 0;
+          const src3 = idleAnimation.interpolants[k];
+          const v3 = src3.evaluate(t3);
           dst
             .sub(localVector2.fromArray(v3))
             .add(localVector2.fromArray(v2));

@@ -431,6 +431,19 @@ class CharacterPhysics {
       }
     };
     _updateBowIkAnimation();
+    const _updateRifleIkAnimation = () => {
+      const aimAction = this.player.getAction('aim')
+      const isPlayerAiming = !!aimAction && !aimAction.playerAnimation;
+      if (isPlayerAiming && aimAction.playerAnimation === 'rifleAim') {
+        const targetPosition = localVector.copy(this.player.leftHand.position).add(
+          localVector2.set(-rightHandOffset.x * 2, 0, 0.2)
+            .applyQuaternion(this.player.leftHand.quaternion)
+        );
+        this.player.leftHand.position.lerp(targetPosition, 0.1);
+        this.player.leftHand.updateMatrixWorld();
+      }
+    };
+    _updateRifleIkAnimation();
   }
   update(now, timeDiffS) {
     this.applyGravity(timeDiffS);

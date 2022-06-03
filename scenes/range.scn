@@ -45,7 +45,7 @@
         -1.46
       ],
       "physics": true,
-      "start_url": "https://webaverse.github.io/uzi/",
+      "start_url": "https://LessThan12Parsecs.github.io/ak-rifle/",
       "dynamic": false
     },
     {
@@ -55,7 +55,7 @@
         -3.46
       ],
       "physics": true,
-      "start_url": "https://webaverse.github.io/machine-gun/",
+      "start_url": "https://webaverse.github.io/uzi/",
       "dynamic": false
     }
   ]

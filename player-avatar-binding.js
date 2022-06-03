@@ -89,6 +89,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // const fallLoop = player.getAction('fallLoop');
   // const fallLoopAnimation = fallLoop ? fallLoop.animation : '';
   const hurtAction = player.getAction('hurt');
+  const rifleReloadAction = player.getAction('reloadGun');
+  const rifleReloadAnimation = rifleReloadAction ? rifleReloadAction.animation : '';
   // const swordSideSlash = player.getAction('swordSideSlash');
   // const swordSideSlashAnimation = swordSideSlash ? swordSideSlash.animation : '';
   // const swordTopDownSlash = player.getAction('swordTopDownSlash');
@@ -177,6 +179,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // rig.swordTopDownSlashState = !!swordTopDownSlash;
   rig.hurtAnimation = (hurtAction?.animation) || '';
   rig.hurtTime = player.actionInterpolants.hurt.get();
+  rig.reloadRifleAnimation = (rifleReloadAction?.animation) || '';
+  rig.reloadRifleTime = player.actionInterpolants.rifleReload.get();
 }
 // returns whether eyes were applied
 export function applyPlayerEyesToAvatar(player, rig) {
@@ -228,6 +232,12 @@ export function applyPlayerPoseToAvatar(player, rig) {
   const poseAction = player.getAction('pose');
   rig.poseAnimation = poseAction?.animation || null;
 }
+
+export function applyPlayerReloadActionToAvatar(player, rig) {
+  const reloadAction = player.getAction('reloadGun');
+  rig.reloadAnimation = reloadAction?.animation || null;
+}
+
 export function applyPlayerToAvatar(player, session, rig, mirrors) {
   applyPlayerTransformsToAvatar(player, session, rig);
   // applyPlayerMetaTransformsToAvatar(player, session, rig);
@@ -238,6 +248,7 @@ export function applyPlayerToAvatar(player, session, rig, mirrors) {
   
   applyFacePoseToAvatar(player, rig);
   applyPlayerPoseToAvatar(player, rig);
+  applyPlayerReloadActionToAvatar(player, rig);
 }
 
 export function switchAvatar(oldAvatar, newApp) {

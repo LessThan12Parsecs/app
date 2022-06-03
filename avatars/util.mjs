@@ -514,7 +514,8 @@ export const decorateAnimation = animation => {
   animation.isSitting = /sitting/i.test(animation.name);
   animation.isFloat  = /treading/i.test(animation.name);
   animation.isPistol  = /pistol aiming/i.test(animation.name);
-  animation.isRifle  = /rifle aiming/i.test(animation.name);
+  animation.isRifle  = /rifle_aiming/i.test(animation.name);
+  animation.isRifleReload  = /rifle reload/i.test(animation.name);
   animation.isSlash  = /slash/i.test(animation.name);
   animation.isCombo  = /combo/i.test(animation.name);
   animation.isMagic = /magic/i.test(animation.name);
