@@ -995,7 +995,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             .add(localVector2.fromArray(v2));
         }
       };
-    } else if (avatar.aimAnimation) {
+    } else if (avatar.aimAnimation && !avatar.reloadRifleAnimation) {
       return spec => {
         const {
           animationTrackName: k,
@@ -1046,9 +1046,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         const reloadAnimation = (avatar.reloadRifleAnimation && aimAnimations[avatar.reloadRifleAnimation]);
         _handleDefault(spec);
-        // const reloadTimeS = avatar.reloadTime / 1000;
-        const t2 = now / 1000 % reloadAnimation.duration;
-        // This is not the best solution to remove the action when the animation ends. Will think of better one
+        const t2 = avatar.reloadRifleTime / 1000 % reloadAnimation.duration;
+        // This is maybe not the best solution to remove the action when the animation ends. Will think of better one
         const localPlayer = metaversefile.useLocalPlayer();
         const timeFix = 0.1;
         if (t2 >= reloadAnimation.duration - timeFix) {
@@ -1058,7 +1057,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           if (reloadAnimation) {
             const src2 = reloadAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
-
             const idleAnimation = _getIdleAnimation('walk');
             const t3 = 0;
             const src3 = idleAnimation.interpolants[k];
