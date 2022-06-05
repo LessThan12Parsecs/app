@@ -299,7 +299,7 @@ class CharacterPhysics {
 
     const _updateHandsEnabled = () => {
       const isSession = !!session;
-      const isPlayerAiming = !!aimAction && !aimAction.playerAnimation;
+      const isPlayerAiming = !!aimAction && (!aimAction.playerAnimation || aimAction.playerAnimation === 'rifleAim');
       const isObjectAimable = !!aimComponent;
       // const isPlayingEnvelopeIkAnimation = !!useAction && useAction.ik === 'bow';
       const isHandEnabled = (isSession || (isPlayerAiming && isObjectAimable)) /* && !isPlayingEnvelopeIkAnimation */;
@@ -336,7 +336,6 @@ class CharacterPhysics {
           /* const rightGamepadPointer = 0;
           const rightGamepadGrip = 0;
           const rightGamepadEnabled = false; */
-  
           this.player.rightHand.position.copy(rightGamepadPosition);
           this.player.rightHand.quaternion.copy(rightGamepadQuaternion);
         }
@@ -433,14 +432,15 @@ class CharacterPhysics {
     _updateBowIkAnimation();
     const _updateRifleIkAnimation = () => {
       const aimAction = this.player.getAction('aim')
-      const isPlayerAiming = !!aimAction && !aimAction.playerAnimation;
+      const isPlayerAiming = !!aimAction;
+      const avatarHeight = this.player.avatar ? this.player.avatar.height : 0;
+      const handOffsetScale = this.player.avatar ? avatarHeight / 1.5 : 1;
       if (isPlayerAiming && aimAction.playerAnimation === 'rifleAim') {
-        const targetPosition = localVector.copy(this.player.leftHand.position).add(
-          localVector2.set(-rightHandOffset.x * 2, 0, 0.2)
-            .applyQuaternion(this.player.leftHand.quaternion)
-        );
-        this.player.leftHand.position.lerp(targetPosition, 0.1);
-        this.player.leftHand.updateMatrixWorld();
+        const rightGamepadPosition = localVector2.copy(localVector)
+          .add(localVector3.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
+        const rightGamepadQuaternion = localQuaternion;
+        this.player.rightHand.position.copy(rightGamepadPosition);
+        this.player.rightHand.quaternion.copy(rightGamepadQuaternion);
       }
     };
     _updateRifleIkAnimation();
