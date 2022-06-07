@@ -47,6 +47,9 @@ class CharacterPhysics {
    
     this.lastPistolUse = false;
     this.lastPistolUseStartTime = -Infinity;
+    this.lastRifleUse = false;
+    this.lastRifleUseStartTime = -Infinity;
+
   }
   setPosition(p) {
     localVector.copy(p);
@@ -437,16 +440,76 @@ class CharacterPhysics {
     };
     _updateBowIkAnimation();
     const _updateRifleIkAnimation = () => {
-      const aimAction = this.player.getAction('aim')
-      const isPlayerAiming = !!aimAction;
-      const avatarHeight = this.player.avatar ? this.player.avatar.height : 0;
-      const handOffsetScale = this.player.avatar ? avatarHeight / 1.5 : 1;
-      if (isPlayerAiming && aimAction.playerAnimation === 'rifleAim') {
-        const rightGamepadPosition = localVector2.copy(localVector)
-          .add(localVector3.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
-        const rightGamepadQuaternion = localQuaternion;
-        this.player.rightHand.position.copy(rightGamepadPosition);
-        this.player.rightHand.quaternion.copy(rightGamepadQuaternion);
+      const kickbackTime = 300;
+      const kickbackExponent = 0.06;
+      const fakeArmLength = 0.2;
+
+      const rifleUse = !!useAction && useAction.ik === 'rifle';
+      if (!this.lastRifleUse && rifleUse) {
+        this.lastRifleUseStartTime = now;
+      }
+      this.lastRifleUse = rifleUse;
+
+      if (isFinite(this.lastRifleUseStartTime)) {
+        const lastUseTimeDiff = now - this.lastRifleUseStartTime;
+        const f = Math.min(Math.max(lastUseTimeDiff / kickbackTime, 0), 1);
+        const v = Math.sin(Math.pow(f, kickbackExponent) * Math.PI);
+        localQuaternion.setFromRotationMatrix(
+          localMatrix.lookAt(
+            localVector.copy(this.player.leftHand.position),
+            localVector2.copy(this.player.leftHand.position)
+              .add(
+                localVector3.set(0, 1, -1)
+                  .applyQuaternion(this.player.leftHand.quaternion)
+              ),
+            localVector3.set(0, 0, 1)
+              .applyQuaternion(this.player.leftHand.quaternion)
+          )
+        );
+
+        this.player.leftHand.position.sub(
+          localVector.set(0, 0, -fakeArmLength)
+            .applyQuaternion(this.player.leftHand.quaternion)
+        );
+
+        this.player.leftHand.quaternion.slerp(localQuaternion, v);
+
+        this.player.leftHand.position.add(
+          localVector.set(0, 0, -fakeArmLength)
+            .applyQuaternion(this.player.leftHand.quaternion)
+        );
+
+        this.player.leftHand.updateMatrixWorld();
+        localQuaternion.setFromRotationMatrix(
+          localMatrix.lookAt(
+            localVector.copy(this.player.rightHand.position),
+            localVector2.copy(this.player.rightHand.position)
+              .add(
+                localVector3.set(0, 1, -1)
+                  .applyQuaternion(this.player.rightHand.quaternion)
+              ),
+            localVector3.set(0, 0, 1)
+              .applyQuaternion(this.player.rightHand.quaternion)
+          )
+        );
+
+        this.player.rightHand.position.sub(
+          localVector.set(0, 0, -fakeArmLength)
+            .applyQuaternion(this.player.rightHand.quaternion)
+        );
+
+        this.player.rightHand.quaternion.slerp(localQuaternion, v);
+
+        this.player.rightHand.position.add(
+          localVector.set(0, 0, -fakeArmLength)
+            .applyQuaternion(this.player.rightHand.quaternion)
+        );
+
+        this.player.rightHand.updateMatrixWorld();
+
+        if (f >= 1) {
+          this.lastRifleUseStartTime = -Infinity;
+        }
       }
     };
     _updateRifleIkAnimation();
