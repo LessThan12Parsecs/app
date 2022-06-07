@@ -303,7 +303,7 @@ class CharacterPhysics {
       const isPlayerAiming = !!aimAction && (!aimAction.playerAnimation || aimAction.playerAnimation === 'rifleAim');
       const isObjectAimable = !!aimComponent;
       // const isPlayingEnvelopeIkAnimation = !!useAction && useAction.ik === 'bow';
-      const isHandEnabled = (isSession || (isPlayerAiming && isObjectAimable))/* && !isPlayingEnvelopeIkAnimation */;
+      const isHandEnabled = (isSession || (isPlayerAiming && isObjectAimable && !this.player.hasAction('reloadGun')))/* && !isPlayingEnvelopeIkAnimation */;
       for (let i = 0; i < 2; i++) {
         const isExpectedHandIndex = i === ((aimComponent?.ikHand === 'left') ? 1 : (aimComponent?.ikHand === 'right') ? 0 : null);
         const enabled = isHandEnabled && isExpectedHandIndex;
@@ -317,7 +317,7 @@ class CharacterPhysics {
     _updateHandsEnabled();
 
     const _updateFakeHands = () => {
-      if (!session && !this.player.hasAction('reloadGun')) {
+      if (!session) {
         localMatrix.copy(this.player.matrixWorld)
           .decompose(localVector, localQuaternion, localVector2);
   
