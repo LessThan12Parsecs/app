@@ -32,7 +32,8 @@ const localMatrix = new THREE.Matrix4();
 const zeroVector = new THREE.Vector3();
 const upVector = new THREE.Vector3(0, 1, 0);
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
-const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
+const rightHandOffset = new THREE.Vector3(0.45, -0.30, -0.9);
+const rightHandOffsetWithRifle = new THREE.Vector3(0.45, -0.30, -0.9);
 const z22Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI/8);
 const groundStickOffset = 0.03;
 
@@ -302,17 +303,21 @@ class CharacterPhysics {
       const isPlayerAiming = !!aimAction && (!aimAction.playerAnimation || aimAction.playerAnimation === 'rifleAim');
       const isObjectAimable = !!aimComponent;
       // const isPlayingEnvelopeIkAnimation = !!useAction && useAction.ik === 'bow';
-      const isHandEnabled = (isSession || (isPlayerAiming && isObjectAimable)) /* && !isPlayingEnvelopeIkAnimation */;
+      const isHandEnabled = (isSession || (isPlayerAiming && isObjectAimable))/* && !isPlayingEnvelopeIkAnimation */;
       for (let i = 0; i < 2; i++) {
         const isExpectedHandIndex = i === ((aimComponent?.ikHand === 'left') ? 1 : (aimComponent?.ikHand === 'right') ? 0 : null);
         const enabled = isHandEnabled && isExpectedHandIndex;
-        this.player.hands[i].enabled = enabled;
+        if (aimComponent?.ikHand === 'both' && isHandEnabled) {
+          this.player.hands[i].enabled = true;
+        } else {
+          this.player.hands[i].enabled = enabled;
+        }
       }
     };
     _updateHandsEnabled();
 
     const _updateFakeHands = () => {
-      if (!session) {
+      if (!session && !this.player.hasAction('reloadGun')) {
         localMatrix.copy(this.player.matrixWorld)
           .decompose(localVector, localQuaternion, localVector2);
   
@@ -330,8 +335,9 @@ class CharacterPhysics {
           this.player.leftHand.quaternion.copy(leftGamepadQuaternion);
         }
         if (this.player.hands[1].enabled) {
+          let handOffset = aimComponent?.ikHand === 'both' ? rightHandOffsetWithRifle : rightHandOffset;
           const rightGamepadPosition = localVector2.copy(localVector)
-            .add(localVector3.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
+            .add(localVector3.copy(handOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
           const rightGamepadQuaternion = localQuaternion;
           /* const rightGamepadPointer = 0;
           const rightGamepadGrip = 0;
