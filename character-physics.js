@@ -32,10 +32,13 @@ const localMatrix = new THREE.Matrix4();
 const zeroVector = new THREE.Vector3();
 const upVector = new THREE.Vector3(0, 1, 0);
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
-const rightHandOffset = new THREE.Vector3(0.45, -0.30, -0.9);
-const rightHandOffsetWithRifle = new THREE.Vector3(0.45, -0.30, -0.9);
+const leftHandOffsetWithRifle = new THREE.Vector3(0.2, -0.1, -0.4);
+const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
+const rightHandOffsetWithRifle = new THREE.Vector3(0.45, -2.1, -0.9);
 const z22Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI/8);
 const groundStickOffset = 0.03;
+const firstPersonAimRifleOffsetL = new THREE.Vector3(0.06, -0.08, -0.4);
+const firstPersonAimRifleOffsetR = new THREE.Vector3(0.21, -0.08, -0.9);
 
 class CharacterPhysics {
   constructor(player) {
@@ -323,12 +326,15 @@ class CharacterPhysics {
       if (!session) {
         localMatrix.copy(this.player.matrixWorld)
           .decompose(localVector, localQuaternion, localVector2);
-  
         const avatarHeight = this.player.avatar ? this.player.avatar.height : 0;
         const handOffsetScale = this.player.avatar ? avatarHeight / 1.5 : 1;
         if (this.player.hands[0].enabled) {
+          let handOffset = aimComponent?.ikHand === 'both' ? leftHandOffsetWithRifle : leftHandOffset;
+          if (this.player.hasAction('firstperson')) {
+            handOffset = firstPersonAimRifleOffsetL
+          }
           const leftGamepadPosition = localVector2.copy(localVector)
-            .add(localVector3.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
+            .add(localVector3.copy(handOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
           const leftGamepadQuaternion = localQuaternion;
           /* const leftGamepadPointer = 0;
           const leftGamepadGrip = 0;
@@ -339,6 +345,9 @@ class CharacterPhysics {
         }
         if (this.player.hands[1].enabled) {
           let handOffset = aimComponent?.ikHand === 'both' ? rightHandOffsetWithRifle : rightHandOffset;
+          if (this.player.hasAction('firstperson')) {
+            handOffset = firstPersonAimRifleOffsetR;
+          }
           const rightGamepadPosition = localVector2.copy(localVector)
             .add(localVector3.copy(handOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
           const rightGamepadQuaternion = localQuaternion;
@@ -440,17 +449,12 @@ class CharacterPhysics {
     };
     _updateBowIkAnimation();
     const _updateRifleIkAnimation = () => {
-      const kickbackTime = 300;
-      const kickbackExponent = 0.06;
+      const kickbackTime = 200;
+      const kickbackExponent = 0.04;
       const fakeArmLength = 0.2;
 
       const rifleUse = !!useAction && useAction.ik === 'rifle';
-      if (!this.lastRifleUse && rifleUse) {
-        this.lastRifleUseStartTime = now;
-      }
-      this.lastRifleUse = rifleUse;
-
-      if (isFinite(this.lastRifleUseStartTime)) {
+      if (rifleUse) {
         const lastUseTimeDiff = now - this.lastRifleUseStartTime;
         const f = Math.min(Math.max(lastUseTimeDiff / kickbackTime, 0), 1);
         const v = Math.sin(Math.pow(f, kickbackExponent) * Math.PI);
